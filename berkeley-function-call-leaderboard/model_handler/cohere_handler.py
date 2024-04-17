@@ -14,15 +14,15 @@ from model_handler.constant import (
     USER_PROMPT_FOR_CHAT_MODEL,
     SYSTEM_PROMPT_FOR_CHAT_MODEL,
 )
-from openai import OpenAI
+import litellm
 import os, time, json
 
 
-class OpenAIHandler(BaseHandler):
+class CohereHandler(BaseHandler):
     def __init__(self, model_name, temperature=0.7, top_p=1, max_tokens=1000) -> None:
         super().__init__(model_name, temperature, top_p, max_tokens)
         self.model_style = ModelStyle.OpenAI
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.client = litellm
 
     def inference(self, prompt, functions, test_category):
         if "FC" not in self.model_name:
@@ -42,7 +42,7 @@ class OpenAIHandler(BaseHandler):
                 },
             ]
             start_time = time.time()
-            response = self.client.chat.completions.create(
+            response = self.client.completion(
                 messages=message,
                 model=self.model_name,
                 temperature=self.temperature,
@@ -62,7 +62,7 @@ class OpenAIHandler(BaseHandler):
             )
             start_time = time.time()
             if len(oai_tool) > 0:
-                response = self.client.chat.completions.create(
+                response = self.client.completion(
                     messages=message,
                     model=self.model_name.replace("-FC", ""),
                     temperature=self.temperature,
@@ -71,7 +71,7 @@ class OpenAIHandler(BaseHandler):
                     tools=oai_tool,
                 )
             else:
-                response = self.client.chat.completions.create(
+                response = self.client.completion(
                     messages=message,
                     model=self.model_name.replace("-FC", ""),
                     temperature=self.temperature,
@@ -94,7 +94,7 @@ class OpenAIHandler(BaseHandler):
         metadata["latency"] = latency
         metadata["message"] = full_prompt
         return result, metadata
-    
+
     def decode_ast(self,result,language="Python"):
         if "FC" not in self.model_name:
             decoded_output = ast_parse(result,language)
@@ -111,7 +111,7 @@ class OpenAIHandler(BaseHandler):
                         params[key] = str(params[key])
                 decoded_output.append({name: params})
         return decoded_output
-    
+
     def decode_execute(self,result):
         if "FC" not in self.model_name:
             decoded_output = ast_parse(result)

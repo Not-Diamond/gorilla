@@ -13,6 +13,7 @@ from model_handler.constant import (
     SYSTEM_PROMPT_FOR_CHAT_MODEL,
     USER_PROMPT_FOR_CHAT_MODEL,
     GORILLA_TO_PYTHON,
+    PROMPT_FOR_TRAINING,
 )
 import os, time
 from anthropic import Anthropic
@@ -73,7 +74,9 @@ class ClaudeHandler(BaseHandler):
                 param_value = _convert_value(param_value, param_type)
                 param_dict[param_name] = param_value
             result.append({name: param_dict})
+        full_prompt = PROMPT_FOR_TRAINING.format(user_prompt=prompt, functions=str(functions))
         metadata = {}
+        metadata["message"] = full_prompt
         metadata["input_tokens"] = response.usage.input_tokens
         metadata["output_tokens"] = response.usage.output_tokens
         metadata["latency"] = latency

@@ -12,11 +12,12 @@ from model_handler.deepseek_handler import DeepseekHandler
 from model_handler.functionary_handler import FunctionaryHandler
 from model_handler.databricks_handler import DatabricksHandler
 from model_handler.hermes_handler import HermesHandler
+from model_handler.together_handler import TogetherHandler
+from model_handler.cohere_handler import CohereHandler
 
 handler_map = {
     "gorilla-openfunctions-v0": GorillaHandler,
     "gorilla-openfunctions-v2": GorillaHandler,
-    "gpt-4-1106-preview-FC": OpenAIHandler,
     "gpt-4-1106-preview": OpenAIHandler,
     "gpt-4-0125-preview-FC": OpenAIHandler,
     "gpt-4-0125-preview": OpenAIHandler,
@@ -27,10 +28,7 @@ handler_map = {
     "claude-2.1": ClaudeHandler,
     "claude-instant-1.2": ClaudeHandler,
     "claude-3-opus-20240229": ClaudeHandler,
-    "claude-3-opus-20240229-FC": ClaudeHandler,
     "claude-3-sonnet-20240229": ClaudeHandler,
-    "claude-3-sonnet-20240229-FC": ClaudeHandler,
-    "claude-3-haiku-20240307-FC": ClaudeHandler,
     "mistral-large-2402": MistralHandler,
     "mistral-large-2402-FC-Any": MistralHandler,
     "mistral-large-2402-FC-Auto": MistralHandler,
@@ -52,4 +50,18 @@ handler_map = {
     "meetkai/functionary-medium-v2.4-FC": FunctionaryHandler,
     "databricks-dbrx-instruct": DatabricksHandler,
     "NousResearch/Hermes-2-Pro-Mistral-7B": HermesHandler,
+
+    "gpt-3.5-turbo-FC": OpenAIHandler,
+    "gpt-4-FC": OpenAIHandler,
+    "gpt-4-1106-preview-FC": OpenAIHandler,
+    "gpt-4-turbo-preview-FC": OpenAIHandler,
+    "claude-3-opus-20240229-FC": ClaudeHandler,
+    "claude-3-sonnet-20240229-FC": ClaudeHandler,
+    "claude-3-haiku-20240307-FC": ClaudeHandler,
+    "gemini-pro": GeminiHandler,
+    "mistral-small-latest-FC-Auto": MistralHandler,
+    "mistral-large-latest-FC-Auto": MistralHandler,
+    "Mixtral-8x7B-Instruct-v0.1-FC": TogetherHandler,
+    "Mistral-7B-Instruct-v0.1-FC": TogetherHandler,
+    "command-r-FC": CohereHandler,
 }

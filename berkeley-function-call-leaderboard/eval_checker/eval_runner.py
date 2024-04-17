@@ -20,81 +20,57 @@ def single_executable_file_runner(
     correct_count = 0
     for i in tqdm(range(len(model_result))):
         raw_result = model_result[i]["result"]
+        message = model_result[i]["message"]
+        temp = {
+            "id": i + 1,
+            "valid": False,
+            "model_name": model_name.replace("-FC", ""),
+            "test_category": test_category,
+            "message": message,
+            "prompt": prompt[i],
+            "model_result_raw": raw_result,
+        }
         try:
             decoded_result = handler.decode_execute(raw_result)
+            temp["score"] = 1
         except Exception as e:
-            result.append(
-                {
-                    "id": i + 1,
-                    "valid": False,
-                    "model_name": model_name,
-                    "test_category": test_category,
-                    "error": [f"Failed to decode executable. {str(e)}"],
-                    "error_type": "executable_decoder:decoder_failed",
-                    "prompt": prompt[i],
-                    "model_result_raw": raw_result,
-                }
-            )
+            temp["score"] = 0
+            temp["error"] = [f"Failed to decode executable. {str(e)}"]
+            temp["error_type"] = "executable_decoder:decoder_failed"
+            result.append(temp)
             continue
 
         if "rest" in test_category:
             # REST is always single-functioned. Therefore we take the first one and pass it to the REST checker.
             if not is_rest_format_output(decoded_result):
-                result.append(
-                    {
-                        "id": i + 1,
-                        "valid": False,
-                        "model_name": model_name,
-                        "test_category": test_category,
-                        "error": [
-                            "Did not output in the specified format. Note: the model_result is wrapped in a string to ensure json serializability."
-                        ],
-                        "error_type": "executable_decoder:rest_wrong_output_format",
-                        "prompt": prompt[i],
-                        "model_result_raw": str(raw_result),
-                        "model_result_decoded": str(decoded_result),
-                    }
-                )
+                temp["score"] = 0
+                temp["error"] = ["Did not output in the specified format. Note: the model_result is wrapped in a string to ensure json serializability."]
+                temp["error_type"] = "executable_decoder:rest_wrong_output_format"
+                temp["model_result_decoded"] = str(decoded_result)
+                result.append(temp)
                 continue
 
             checker_result = executable_checker_rest(decoded_result[0], i)
 
         else:
             if not is_executable_format_output(decoded_result):
-                result.append(
-                    {
-                        "id": i + 1,
-                        "valid": False,
-                        "model_name": model_name,
-                        "test_category": test_category,
-                        "error": [
-                            "Did not output in the specified format. Note: the model_result is wrapped in a string to ensure json serializability."
-                        ],
-                        "error_type": "executable_decoder:wrong_output_format",
-                        "prompt": prompt[i],
-                        "model_result_raw": str(raw_result),
-                        "model_result_decoded": str(decoded_result),
-                    }
-                )
+                temp["score"] = 0
+                temp["error"] = ["Did not output in the specified format. Note: the model_result is wrapped in a string to ensure json serializability."]
+                temp["error_type"] = "executable_decoder:wrong_output_format"
+                temp["model_result_decoded"] = str(decoded_result)
+                result.append(temp)
                 continue
 
             prompt_item = prompt[i]
             checker_result = executable_checker(decoded_result, prompt_item)
 
         if checker_result["valid"]:
+            temp["score"] = 1
             correct_count += 1
         else:
-            temp = {}
-            temp["id"] = i + 1
-            temp["model_name"] = model_name
-            temp["test_category"] = test_category
-            temp["valid"] = checker_result["valid"]
-            temp["error"] = checker_result["error"]
-            temp["error_type"] = checker_result["error_type"]
-            temp["prompt"] = prompt[i]
-            temp["model_result_raw"] = raw_result
-            temp["model_result_decoded"] = decoded_result
-            result.append(temp)
+            temp["score"] = 0
+
+        result.append(temp)
 
     accuracy = correct_count / len(model_result)
     result.insert(
@@ -130,20 +106,23 @@ def single_relevance_file_runner(handler, model_result, model_name, test_categor
         except Exception as e:
             success = True
 
+        temp = {}
+        temp["id"] = i + 1
+        temp["model_name"] = model_name.replace("-FC", "")
+        temp["test_category"] = test_category
+        temp["valid"] = success
+        temp["model_result"] = model_result_item
+        temp["decoded_result"] = decoded_result
+        temp["message"] = model_result[i]["message"]
         if success:
             correct_count += 1
+            temp["score"] = 1
         else:
-            temp = {}
-            temp["id"] = i + 1
-            temp["model_name"] = model_name
-            temp["test_category"] = test_category
-            temp["valid"] = success
+            temp["score"] = 0
             temp["error"] = [
                 f"Valid syntax. Successfully decode AST when it should not."
             ]
             temp["error_type"] = "relevance_error:decoder_success"
-            temp["model_result"] = model_result_item
-            temp["decoded_result"] = decoded_result
 
             result.append(temp)
 
@@ -176,44 +155,31 @@ def single_ast_file_runner(
         model_result_item = model_result[i]["result"]
         prompt_item = prompt[i]["function"]
         possible_answer_item = possible_answer[i]
+        temp = {
+            "id": i + 1,
+            "model_name": model_name,
+            "test_category": test_category,
+            "prompt": prompt[i],
+            "model_result_raw": model_result_item,
+            "possible_answer": possible_answer_item,
+        }
 
         try:
-            model_result_item_raw = model_result_item
             model_result_item = handler.decode_ast(model_result_item, language)
+            temp["score"] = 1
         except Exception as e:
-            result.append(
-                {
-                    "id": i + 1,
-                    "model_name": model_name,
-                    "test_category": test_category,
-                    "valid": False,
-                    "error": [f"Invalid syntax. Failed to decode AST. {str(e)}"],
-                    "error_type": "ast_decoder:decoder_failed",
-                    "prompt": prompt[i],
-                    "model_result_raw": model_result_item_raw,
-                    "possible_answer": possible_answer_item,
-                }
-            )
+            temp["score"] = 0
+            temp["error"] = [f"Invalid syntax. Failed to decode AST. {str(e)}"]
+            temp["error_type"] = "ast_decoder:decoder_failed"
+            result.append(temp)
             continue
 
         decoder_output_valid = is_function_calling_format_output(model_result_item)
         if not decoder_output_valid:
-            result.append(
-                {
-                    "id": i + 1,
-                    "model_name": model_name,
-                    "test_category": test_category,
-                    "valid": False,
-                    "error": [
-                        "Did not output in the specified format. Note: the model_result is wrapped in a string to ensure json serializability."
-                    ],
-                    "error_type": "ast_decoder:decoder_wrong_output_format",
-                    "prompt": prompt[i],
-                    "model_result_raw": str(model_result_item_raw),
-                    "model_result_decoded": str(model_result_item),
-                    "possible_answer": possible_answer_item,
-                }
-            )
+            temp["score"] = 0
+            temp["error"] = ["Did not output in the specified format. Note: the model_result is wrapped in a string to ensure json serializability."]
+            temp["error_type"] = "ast_decoder:decoder_wrong_output_format"
+            result.append(temp)
             continue
 
         checker_result = ast_checker(
@@ -227,19 +193,12 @@ def single_ast_file_runner(
 
         if checker_result["valid"]:
             correct_count += 1
+            temp["score"] = 1
         else:
-            temp = {}
-            temp["id"] = i + 1
-            temp["model_name"] = model_name
-            temp["test_category"] = test_category
-            temp["valid"] = checker_result["valid"]
+            temp["score"] = 0
             temp["error"] = checker_result["error"]
             temp["error_type"] = checker_result["error_type"]
-            temp["prompt"] = prompt[i]
-            temp["model_result_raw"] = model_result_item_raw
-            temp["model_result_decoded"] = model_result_item
-            temp["possible_answer"] = possible_answer_item
-            result.append(temp)
+        result.append(temp)
 
     accuracy = correct_count / len(model_result)
     result.insert(
@@ -380,9 +339,9 @@ def runner(model_names, test_categories, api_sanity_check):
 
     # This function reads all the score files from local folder and updates the leaderboard table.
     # This is helpful when you only want to run the evaluation for a subset of models and test categories.
-    update_leaderboard_table_with_score_file(LEADERBOARD_TABLE, OUTPUT_PATH)
+    # update_leaderboard_table_with_score_file(LEADERBOARD_TABLE, OUTPUT_PATH)
     # Write the leaderboard table to a file
-    generate_leaderboard_csv(LEADERBOARD_TABLE, OUTPUT_PATH)
+    # generate_leaderboard_csv(LEADERBOARD_TABLE, OUTPUT_PATH)
 
 
 ARG_PARSE_MAPPING = {
@@ -435,10 +394,10 @@ ARG_PARSE_MAPPING = {
 }
 
 
-INPUT_PATH = "../result/"
+INPUT_PATH = "../result/" + "20240417_114654/"
 PROMPT_PATH = "../data/"
 POSSIBLE_ANSWER_PATH = "../data/possible_answer/"
-OUTPUT_PATH = "../score/"
+OUTPUT_PATH = "../score/" + "20240417_114654/"
 
 # A dictionary to store the results
 # Key is model name, value is a dictionary with keys as test category and values as a dictionary with accuracy and total count

@@ -18,11 +18,18 @@ from openai import OpenAI
 import os, time, json
 
 
-class OpenAIHandler(BaseHandler):
+MODEL_PREFIX = {
+    "Mixtral-8x7B-Instruct-v0.1-FC": "mistralai",
+    "Mistral-7B-Instruct-v0.1-FC": "mistralai"
+}
+
+
+class TogetherHandler(BaseHandler):
     def __init__(self, model_name, temperature=0.7, top_p=1, max_tokens=1000) -> None:
         super().__init__(model_name, temperature, top_p, max_tokens)
         self.model_style = ModelStyle.OpenAI
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.client = OpenAI(api_key=os.getenv("TOGETHER_API_KEY"),
+                             base_url="https://api.together.xyz/v1")
 
     def inference(self, prompt, functions, test_category):
         if "FC" not in self.model_name:
@@ -44,7 +51,7 @@ class OpenAIHandler(BaseHandler):
             start_time = time.time()
             response = self.client.chat.completions.create(
                 messages=message,
-                model=self.model_name,
+                model=f"{MODEL_PREFIX[self.model_name]}/{self.model_name}",
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 top_p=self.top_p,
@@ -61,10 +68,11 @@ class OpenAIHandler(BaseHandler):
                 functions, GORILLA_TO_OPENAPI, self.model_style, test_category, True
             )
             start_time = time.time()
+            model_name = f"{MODEL_PREFIX[self.model_name]}/{self.model_name.replace('-FC', '')}"
             if len(oai_tool) > 0:
                 response = self.client.chat.completions.create(
                     messages=message,
-                    model=self.model_name.replace("-FC", ""),
+                    model=model_name,
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                     top_p=self.top_p,
@@ -73,7 +81,7 @@ class OpenAIHandler(BaseHandler):
             else:
                 response = self.client.chat.completions.create(
                     messages=message,
-                    model=self.model_name.replace("-FC", ""),
+                    model=model_name,
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                     top_p=self.top_p,
@@ -94,7 +102,7 @@ class OpenAIHandler(BaseHandler):
         metadata["latency"] = latency
         metadata["message"] = full_prompt
         return result, metadata
-    
+
     def decode_ast(self,result,language="Python"):
         if "FC" not in self.model_name:
             decoded_output = ast_parse(result,language)
@@ -111,7 +119,7 @@ class OpenAIHandler(BaseHandler):
                         params[key] = str(params[key])
                 decoded_output.append({name: params})
         return decoded_output
-    
+
     def decode_execute(self,result):
         if "FC" not in self.model_name:
             decoded_output = ast_parse(result)

@@ -1,3 +1,4 @@
+import os
 from model_handler.handler import BaseHandler
 from model_handler.model_style import ModelStyle
 from model_handler.utils import (
@@ -6,7 +7,7 @@ from model_handler.utils import (
     augment_prompt_by_languge,
     language_specific_pre_processing,
 )
-from model_handler.constant import GORILLA_TO_OPENAPI
+from model_handler.constant import GORILLA_TO_OPENAPI, PROMPT_FOR_TRAINING
 import subprocess, requests, json, time
 
 
@@ -20,13 +21,13 @@ class GeminiHandler(BaseHandler):
         Query Gemini Pro model.
         """
 
-        token = subprocess.run(
-            "gcloud auth print-access-token",
-            check=False,
-            shell=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
+        # token = subprocess.run(
+        #     "gcloud auth print-access-token",
+        #     check=False,
+        #     shell=True,
+        #     capture_output=True,
+        #     text=True,
+        # ).stdout.strip()
 
         json_data = {
             "contents": {
@@ -39,13 +40,14 @@ class GeminiHandler(BaseHandler):
                 "max_output_tokens": self.max_tokens,
                 "temperature": self.temperature,
             },
-            "tools": {"function_declarations": functions},
+            "tools": [{"function_declarations": functions}],
         }
 
         # NOTE: To run the gemini model, you need to provide your own GCP project ID, which can be found in the GCP console.
-        API_URL = "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/{YOUR_GCP_PROJECT_ID_HERE}/locations/us-central1/publishers/google/models/gemini-1.0-pro:generateContent"
+        # API_URL = "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/{YOUR_GCP_PROJECT_ID_HERE}/locations/us-central1/publishers/google/models/gemini-1.0-pro:generateContent"
+        API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={os.getenv('GEMINI_API_KEY')}"
         headers = {
-            "Authorization": "Bearer " + token,
+            # "Authorization": "Bearer " + token,
             "Content-Type": "application/json",
         }
         start = time.time()
@@ -79,12 +81,8 @@ class GeminiHandler(BaseHandler):
         else:
             result = contents["text"]
         metatdata = {}
-        metatdata["input_tokens"] = json.loads(response.content)["usageMetadata"][
-            "promptTokenCount"
-        ]
-        metatdata["output_tokens"] = json.loads(response.content)["usageMetadata"][
-            "candidatesTokenCount"
-        ]
+        metatdata["input_tokens"] = result["usageMetadata"]["promptTokenCount"] if "usageMetadata" in result else 0.
+        metatdata["output_tokens"] = result["usageMetadata"]["candidatesTokenCount"] if "usageMetadata" in result else 0.
         metatdata["latency"] = latency
         return result, metatdata
 
@@ -95,6 +93,8 @@ class GeminiHandler(BaseHandler):
             functions, GORILLA_TO_OPENAPI, self.model_style, test_category, True
         )
         result, metadata = self._query_gemini(prompt, gemini_tool)
+        full_prompt = PROMPT_FOR_TRAINING.format(user_prompt=prompt, functions=str(functions))
+        metadata["message"] = full_prompt
         return result, metadata
 
     def decode_ast(self, result, language="Python"):

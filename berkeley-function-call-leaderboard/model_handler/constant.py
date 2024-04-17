@@ -5,6 +5,10 @@ SYSTEM_PROMPT_FOR_CHAT_MODEL = """
     also point it out. You should only return the function call in tools call sections.
     """
 
+PROMPT_FOR_TRAINING = """
+    {user_prompt}\nHere is a list of functions in JSON format that you can invoke:\n{functions}.
+"""
+
 USER_PROMPT_FOR_CHAT_MODEL = """
     Questions:{user_prompt}\nHere is a list of functions in JSON format that you can invoke:\n{functions}. 
     Should you decide to return the function call(s),Put it in the format of [func1(params_name=params_value, params_name2=params_value2...), func2(params)]\n

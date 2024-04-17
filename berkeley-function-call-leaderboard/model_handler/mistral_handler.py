@@ -4,6 +4,7 @@ from model_handler.constant import (
     SYSTEM_PROMPT_FOR_CHAT_MODEL,
     USER_PROMPT_FOR_CHAT_MODEL,
     GORILLA_TO_OPENAPI,
+    PROMPT_FOR_TRAINING,
 )
 from model_handler.utils import (
     convert_to_tool,
@@ -77,7 +78,9 @@ class MistralHandler(BaseHandler):
             )
             latency = time.time() - start
             result = chat_response.choices[0].message.content
+        full_prompt = PROMPT_FOR_TRAINING.format(user_prompt=prompt, functions=str(functions))
         metadata = {
+            "message": full_prompt,
             "input_tokens": chat_response.usage.prompt_tokens,
             "output_tokens": chat_response.usage.completion_tokens,
             "latency": latency,

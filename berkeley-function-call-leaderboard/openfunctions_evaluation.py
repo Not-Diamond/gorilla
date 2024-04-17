@@ -1,14 +1,18 @@
+from datetime import datetime
+from pathlib import Path
 import argparse,json,os
 from tqdm import tqdm
 from model_handler.handler_map import handler_map
 from model_handler.model_style import ModelStyle
+
+from dotenv import load_dotenv
 
 def get_args():
     parser = argparse.ArgumentParser()
     # Refer to model_choice for supported models.
     parser.add_argument("--model", type=str, default="gorilla-openfunctions-v2")
     # Refer to test_categories for supported categories.
-    parser.add_argument("--test_category", type=str, default="all")
+    parser.add_argument("--test-category", type=str, default="all")
 
     # Parameters for the model that you want to test.
     parser.add_argument("--temperature", type=float, default=0.7)
@@ -48,23 +52,26 @@ def load_file(test_category):
     return test_cate,files_to_open
 
 if __name__ == "__main__":
+    load_dotenv("../../.env")
     args = get_args()
     handler = build_handler(args.model, args.temperature, args.top_p, args.max_tokens)
+    exec_time_str = dir_time_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    save_path = Path("./result") / exec_time_str
     if handler.model_style == ModelStyle.OSSMODEL:
        result = handler.inference(question_file="eval_data_total.json",test_category=args.test_category,num_gpus=args.num_gpus)
        for res in result[0]:
            handler.write(res, "result.json")
     else:
         test_cate, files_to_open = load_file(args.test_category)
-        for test_category, file_to_open in zip(test_cate,files_to_open):
+        for test_category, file_to_open in zip(test_cate, files_to_open):
             print("Generating: " + file_to_open)
             test_cases = []
             with open("./data/" + file_to_open) as f:
                 for line in f:
                     test_cases.append(json.loads(line))     
             num_existing_result = 0  # if the result file already exists, skip the test cases that have been tested.
-            if os.path.exists("./result/" + args.model + "/" + file_to_open.replace(".json", "_result.json")):
-                with open("./result/"+ args.model+ "/"+ file_to_open.replace(".json", "_result.json")) as f:
+            if os.path.exists(save_path / args.model / file_to_open.replace(".json", "_result.json")):
+                with open(save_path / args.model / file_to_open.replace(".json", "_result.json")) as f:
                     for line in f:
                         num_existing_result += 1
             for index, test_case in enumerate(tqdm(test_cases)):
@@ -73,12 +80,13 @@ if __name__ == "__main__":
                 user_question,functions = test_case["question"], test_case["function"]
                 if type(functions) is dict or type(functions) is str:
                     functions = [functions]
-                result,metadata = handler.inference(user_question, functions,test_category)
+                result, metadata = handler.inference(user_question, functions,test_category)
                 result_to_write = {
                     "idx": index,
                     "result": result,
                     "input_token_count": metadata["input_tokens"],
                     "output_token_count": metadata["output_tokens"],
                     "latency": metadata["latency"],
+                    "message": metadata["message"]
                 }
-                handler.write(result_to_write, file_to_open)
+                handler.write(result_to_write, save_path, file_to_open)
