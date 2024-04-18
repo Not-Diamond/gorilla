@@ -8,6 +8,8 @@ from tqdm import tqdm
 import argparse
 
 
+from dotenv import load_dotenv
+
 # NOTE: This file should be run in the `eval_checker` directory
 
 
@@ -29,6 +31,7 @@ def single_executable_file_runner(
             "message": message,
             "prompt": prompt[i],
             "model_result_raw": raw_result,
+            "training_prompt": model_result[i]["message"]
         }
         try:
             decoded_result = handler.decode_execute(raw_result)
@@ -113,7 +116,7 @@ def single_relevance_file_runner(handler, model_result, model_name, test_categor
         temp["valid"] = success
         temp["model_result"] = model_result_item
         temp["decoded_result"] = decoded_result
-        temp["message"] = model_result[i]["message"]
+        temp["training_prompt"] = model_result[i]["message"]
         if success:
             correct_count += 1
             temp["score"] = 1
@@ -124,7 +127,7 @@ def single_relevance_file_runner(handler, model_result, model_name, test_categor
             ]
             temp["error_type"] = "relevance_error:decoder_success"
 
-            result.append(temp)
+        result.append(temp)
 
     accuracy = correct_count / len(model_result)
     result.insert(
@@ -153,6 +156,7 @@ def single_ast_file_runner(
     correct_count = 0
     for i in range(len(model_result)):
         model_result_item = model_result[i]["result"]
+        training_prompt = model_result[i]["message"]
         prompt_item = prompt[i]["function"]
         possible_answer_item = possible_answer[i]
         temp = {
@@ -162,6 +166,7 @@ def single_ast_file_runner(
             "prompt": prompt[i],
             "model_result_raw": model_result_item,
             "possible_answer": possible_answer_item,
+            "training_prompt": training_prompt
         }
 
         try:
@@ -394,10 +399,10 @@ ARG_PARSE_MAPPING = {
 }
 
 
-INPUT_PATH = "../result/" + "20240417_114654/"
+INPUT_PATH = "../result/" + "20240417_161153/"
 PROMPT_PATH = "../data/"
 POSSIBLE_ANSWER_PATH = "../data/possible_answer/"
-OUTPUT_PATH = "../score/" + "20240417_114654/"
+OUTPUT_PATH = "../score/" + "20240417_161153/"
 
 # A dictionary to store the results
 # Key is model name, value is a dictionary with keys as test category and values as a dictionary with accuracy and total count
@@ -405,6 +410,7 @@ LEADERBOARD_TABLE = {}
 
 
 if __name__ == "__main__":
+    load_dotenv("../../.env")
     parser = argparse.ArgumentParser(description="Process two lists of strings.")
 
     # Add arguments for two lists of strings

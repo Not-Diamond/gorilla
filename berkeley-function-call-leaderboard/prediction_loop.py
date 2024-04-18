@@ -5,6 +5,22 @@ from tqdm import tqdm
 from model_handler.handler_map import handler_map
 from model_handler.model_style import ModelStyle
 
+from model_handler.utils import (
+    convert_to_tool,
+    convert_to_function_call,
+    augment_prompt_by_languge,
+    language_specific_pre_processing,
+    ast_parse,
+)
+
+from model_handler.constant import (
+    GORILLA_TO_OPENAPI,
+    GORILLA_TO_PYTHON,
+    PROMPT_FOR_TRAINING,
+    USER_PROMPT_FOR_CHAT_MODEL,
+    SYSTEM_PROMPT_FOR_CHAT_MODEL,
+)
+
 from dotenv import load_dotenv
 
 from openfunctions_evaluation import build_handler, load_file
@@ -32,34 +48,35 @@ ALL_MODELS = [
     "gpt-4-FC",
     "gpt-4-1106-preview-FC",
     "gpt-4-turbo-preview-FC",
-    "claude-3-opus-20240229-FC",
-    "claude-3-sonnet-20240229-FC",
-    "claude-3-haiku-20240307-FC",
+    "claude-3-opus-20240229",
+    "claude-3-sonnet-20240229",
+    "claude-3-haiku-20240307",
     "gemini-pro",
     "mistral-small-latest-FC-Auto",
     "mistral-large-latest-FC-Auto"
     "Mixtral-8x7B-Instruct-v0.1-FC",
-    "Mistral-7B-Instruct-v0.1-FC",
+    "Mistral-7B-Instruct-v0.2-FC",
     "command-r-FC"
 ]
 
 
 if __name__ == "__main__":
-    load_dotenv("../../.env")
+    load_dotenv("../.env")
     temperature = 0.
     top_p = 1
     max_tokens = 1200
-    test_category = "all"
-    exec_time_str = dir_time_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    test_set = "all"
+    exec_time_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+    exec_time_str = "20240417_183023"
     save_path = Path("./result") / exec_time_str
     for model in ALL_MODELS:
         handler = build_handler(model, temperature, top_p, max_tokens)
         if handler.model_style == ModelStyle.OSSMODEL:
             raise NotImplementedError
         else:
-            test_cate, files_to_open = load_file(test_category)
+            test_cate, files_to_open = load_file(test_set)
             for test_category, file_to_open in zip(test_cate, files_to_open):
-                print("Generating: " + file_to_open)
+                print("Generating: " + file_to_open + " " + model)
                 test_cases = []
                 with open("./data/" + file_to_open) as f:
                     for line in f:
@@ -76,12 +93,20 @@ if __name__ == "__main__":
                     if type(functions) is dict or type(functions) is str:
                         functions = [functions]
                     result, metadata = handler.inference(user_question, functions,test_category)
+
+                    prompt = augment_prompt_by_languge(user_question, test_category)
+                    functions = language_specific_pre_processing(functions, test_category, True)
+                    if type(functions) is not list:
+                        functions = [functions]
+
+                    training_prompt = PROMPT_FOR_TRAINING.format(user_prompt=prompt, functions=str(functions))
+
                     result_to_write = {
                         "idx": index,
                         "result": result,
                         "input_token_count": metadata["input_tokens"],
                         "output_token_count": metadata["output_tokens"],
                         "latency": metadata["latency"],
-                        "message": metadata["message"]
+                        "message": training_prompt
                     }
                     handler.write(result_to_write, save_path, file_to_open)

@@ -111,7 +111,9 @@ class ClaudeHandler(BaseHandler):
                 ],
             )
             latency = time.time() - start
+            full_prompt = PROMPT_FOR_TRAINING.format(user_prompt=prompt, functions=str(functions))
             metadata = {}
+            metadata["message"] = full_prompt
             metadata["input_tokens"] = response.usage.input_tokens
             metadata["output_tokens"] = response.usage.output_tokens
             metadata["latency"] = latency

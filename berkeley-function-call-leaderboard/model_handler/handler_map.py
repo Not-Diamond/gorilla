@@ -62,6 +62,6 @@ handler_map = {
     "mistral-small-latest-FC-Auto": MistralHandler,
     "mistral-large-latest-FC-Auto": MistralHandler,
     "Mixtral-8x7B-Instruct-v0.1-FC": TogetherHandler,
-    "Mistral-7B-Instruct-v0.1-FC": TogetherHandler,
+    "Mistral-7B-Instruct-v0.2-FC": TogetherHandler,
     "command-r-FC": CohereHandler,
 }

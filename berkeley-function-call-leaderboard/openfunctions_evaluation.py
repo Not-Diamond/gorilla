@@ -52,7 +52,7 @@ def load_file(test_category):
     return test_cate,files_to_open
 
 if __name__ == "__main__":
-    load_dotenv("../../.env")
+    load_dotenv("../.env")
     args = get_args()
     handler = build_handler(args.model, args.temperature, args.top_p, args.max_tokens)
     exec_time_str = dir_time_str = datetime.now().strftime('%Y%m%d_%H%M%S')
