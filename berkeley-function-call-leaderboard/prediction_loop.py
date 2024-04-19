@@ -52,11 +52,10 @@ ALL_MODELS = [
     "claude-3-sonnet-20240229",
     "claude-3-haiku-20240307",
     "gemini-pro",
-    "mistral-small-latest-FC-Auto",
-    "mistral-large-latest-FC-Auto"
-    "Mixtral-8x7B-Instruct-v0.1-FC",
-    "Mistral-7B-Instruct-v0.2-FC",
-    "command-r-FC"
+    "mistral-small-latest",
+    "mistral-large-latest",
+    "Mixtral-8x7B-Instruct-v0.1",
+    "command-r"
 ]
 
 

@@ -3,7 +3,14 @@ import json
 import os
 import wandb
 
-from eval_checker.eval_runner_helper import load_file
+
+def load_file(file_path):
+    result = []
+    with open(file_path) as f:
+        file = f.readlines()
+        for line in file:
+            result.append(json.loads(line))
+    return result
 
 
 def process_data(score_path: Path, save_path: Path):
@@ -21,8 +28,6 @@ def process_data(score_path: Path, save_path: Path):
             
             training_prompt = sample["training_prompt"]
             score = sample["score"]
-            results["training_prompt"] = training_prompt
-            results["score"] = score
             results[f"{i}"] = {
                 "eval_details": {"prompt": training_prompt},
                 "result": {"score": score}
@@ -46,3 +51,4 @@ if __name__ == "__main__":
     save_path = Path("./training_data") / "20240417_183023"
     
     process_data(score_path, save_path)
+    upload_to_wandb(save_path)

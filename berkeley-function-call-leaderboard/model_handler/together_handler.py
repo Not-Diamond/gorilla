@@ -20,7 +20,9 @@ import os, time, json
 
 MODEL_PREFIX = {
     "Mixtral-8x7B-Instruct-v0.1-FC": "mistralai",
-    "Mistral-7B-Instruct-v0.1-FC": "mistralai"
+    "Mixtral-8x7B-Instruct-v0.1": "mistralai",
+    "Mistral-7B-Instruct-v0.1-FC": "mistralai",
+    "Mistral-7B-Instruct-v0.1": "mistralai"
 }
 
 

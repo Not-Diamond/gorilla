@@ -89,8 +89,8 @@ class CohereHandler(BaseHandler):
 
         full_prompt = PROMPT_FOR_TRAINING.format(user_prompt=prompt, functions=str(functions))
         metadata = {}
-        metadata["input_tokens"] = response.usage.prompt_tokens
-        metadata["output_tokens"] = response.usage.completion_tokens
+        metadata["input_tokens"] = 0
+        metadata["output_tokens"] = 0
         metadata["latency"] = latency
         metadata["message"] = full_prompt
         return result, metadata

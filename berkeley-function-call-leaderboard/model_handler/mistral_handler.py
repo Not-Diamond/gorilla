@@ -32,6 +32,10 @@ class MistralHandler(BaseHandler):
             tool = convert_to_tool(
                 functions, GORILLA_TO_OPENAPI, self.model_style, test_category, True
             )
+            for t in tool:
+                for key in list(t["function"].keys()):
+                    if key not in ["name", "description", "parameters"]:
+                        del t["function"][key]
             message = [
                 ChatMessage(role="user", content=prompt),
             ]

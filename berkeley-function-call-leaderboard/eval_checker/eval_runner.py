@@ -399,10 +399,10 @@ ARG_PARSE_MAPPING = {
 }
 
 
-INPUT_PATH = "../result/" + "20240417_161153/"
+INPUT_PATH = "../result/" + "20240417_183023/"
 PROMPT_PATH = "../data/"
 POSSIBLE_ANSWER_PATH = "../data/possible_answer/"
-OUTPUT_PATH = "../score/" + "20240417_161153/"
+OUTPUT_PATH = "../score/" + "20240417_183023/"
 
 # A dictionary to store the results
 # Key is model name, value is a dictionary with keys as test category and values as a dictionary with accuracy and total count
