@@ -19,6 +19,8 @@ goex/exec_engine/credentials/*
 !goex/exec_engine/credentials/supported.txt
 goex/docker/*/requirements.txt
 goex/docker/misc/images.json
-berkeley-function-call-leaderboard/score
-berkeley-function-call-leaderboard/result
-berkeley-function-call-leaderboard/data
+berkeley-function-call-leaderboard/score/*
+berkeley-function-call-leaderboard/result/*
+berkeley-function-call-leaderboard/data/*
+berkeley-function-call-leaderboard/training_data/*
+berkeley-function-call-leaderboard/wandb/*
