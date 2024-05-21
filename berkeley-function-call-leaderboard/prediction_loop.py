@@ -44,18 +44,19 @@ test_categories = {
 
 
 ALL_MODELS = [
-    "gpt-3.5-turbo-FC",
-    "gpt-4-FC",
-    "gpt-4-1106-preview-FC",
-    "gpt-4-turbo-preview-FC",
-    "claude-3-opus-20240229",
-    "claude-3-sonnet-20240229",
-    "claude-3-haiku-20240307",
-    "gemini-pro",
-    "mistral-small-latest",
-    "mistral-large-latest",
-    "Mixtral-8x7B-Instruct-v0.1",
-    "command-r"
+    # "gpt-3.5-turbo-FC",
+    # "gpt-4-FC",
+    # "gpt-4-1106-preview-FC",
+    # "gpt-4-turbo-preview-FC",
+    # "claude-3-opus-20240229",
+    # "claude-3-sonnet-20240229",
+    # "claude-3-haiku-20240307",
+    # "gemini-pro",
+    # "mistral-small-latest",
+    # "mistral-large-latest",
+    # "Mixtral-8x7B-Instruct-v0.1",
+    # "command-r",
+    "gpt-4o-2024-05-13-FC",
 ]
 
 
@@ -66,7 +67,7 @@ if __name__ == "__main__":
     max_tokens = 1200
     test_set = "all"
     exec_time_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-    exec_time_str = "20240417_183023"
+    # exec_time_str = "20240417_183023"
     save_path = Path("./result") / exec_time_str
     for model in ALL_MODELS:
         handler = build_handler(model, temperature, top_p, max_tokens)

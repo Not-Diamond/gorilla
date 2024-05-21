@@ -55,6 +55,7 @@ handler_map = {
     "gpt-4-FC": OpenAIHandler,
     "gpt-4-1106-preview-FC": OpenAIHandler,
     "gpt-4-turbo-preview-FC": OpenAIHandler,
+    "gpt-4o-2024-05-13-FC": OpenAIHandler,
     "claude-3-opus-20240229-FC": ClaudeHandler,
     "claude-3-sonnet-20240229-FC": ClaudeHandler,
     "claude-3-haiku-20240307-FC": ClaudeHandler,

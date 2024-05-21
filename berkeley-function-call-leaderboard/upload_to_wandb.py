@@ -47,7 +47,7 @@ def upload_to_wandb(data_path: Path):
 
 
 if __name__ == "__main__":
-    score_path = Path("./score") / "20240417_183023"
+    score_path = Path("./score") / "20240521_132938"
     save_path = Path("./training_data") / "20240417_183023"
     
     process_data(score_path, save_path)
